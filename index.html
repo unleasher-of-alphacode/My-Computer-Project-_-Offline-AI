@@ -270,7 +270,7 @@ function aiReply(text){
         .replace(/∛/g,'Math.cbrt')
         .replace(/\^/g,'**');
 
-      if(/[0-9]/.test(expr) && /[+\-*^]|Math\.sqrt|Math\.cbrt/.test(expr)){
+      if(/[0-9]/.test(expr) && /[+\-*/^]|Math\.sqrt|Math\.cbrt/.test(expr)){
         return '🧮 Result: ' + Function('return ' + expr)();
       }
     }catch{}
@@ -343,3 +343,4 @@ window.addEventListener('load',()=>{
 
 </body>
 </html>
+
