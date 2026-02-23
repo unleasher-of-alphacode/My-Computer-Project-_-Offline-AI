@@ -140,7 +140,6 @@ button{
   font-weight:bold;
 }
 
-/* Trigger Echo button smaller */
 #triggerEcho{
   padding:10px 14px;
   font-size:0.9em;
@@ -175,8 +174,6 @@ button{
 <script>
 const chat=document.getElementById('chat');
 const input=document.getElementById('input');
-
-/* MEMORY ADD */
 let lastUserQuestion = null;
 
 function addMsg(text,cls){
@@ -202,28 +199,53 @@ function startMic(){
   rec.start();
 }
 
-let voiceSpoken=false;
-
+/* ONLY CHANGE IS HERE */
 function speakGreeting(){
   const greeting="Greetings, I am Echo AI, your personal offline assistant"; 
   if('speechSynthesis' in window){
-    voiceSpoken=true;
     speechSynthesis.cancel();
-    const voices = speechSynthesis.getVoices();
-    const maleVoice = voices.find(v => v.name.toLowerCase().includes('male') || v.name.toLowerCase().includes('david') || v.lang.startsWith('en'));
-    const utter = new SpeechSynthesisUtterance(greeting);
-    utter.lang = 'en-IN';
-    utter.rate = 1.15;
-    if(maleVoice) utter.voice = maleVoice;
-    speechSynthesis.speak(utter);
-    utter.onend = () => { voiceSpoken = false; };
+
+    function setMaleVoice(){
+      const voices = speechSynthesis.getVoices();
+      const maleVoice = voices.find(v =>
+        v.name.toLowerCase().includes('male') ||
+        v.name.toLowerCase().includes('david') ||
+        v.name.toLowerCase().includes('mark') ||
+        v.name.toLowerCase().includes('alex') ||
+        v.name.toLowerCase().includes('daniel')
+      );
+
+      const utter = new SpeechSynthesisUtterance(greeting);
+      utter.lang = 'en-IN';
+      utter.rate = 1.15;
+      if(maleVoice) utter.voice = maleVoice;
+
+      speechSynthesis.speak(utter);
+    }
+
+    if(speechSynthesis.getVoices().length === 0){
+      speechSynthesis.onvoiceschanged = setMaleVoice;
+    } else {
+      setMaleVoice();
+    }
   }
 }
 
 function aiReply(text){
   const t=normalize(text);
 
-  /* MEMORY CHECK */
+  /* UPGRADE EASTER EGG */
+  const rawUpgrade = text.trim().toLowerCase();
+  if(rawUpgrade === "upgrade"){
+    return "🔥 SYSTEM UPGRADE INITIATED 🔥";
+  }
+
+  /* 67 EASTER EGG - EXACT MATCH ONLY */
+  const raw = text.trim();
+  if (/^(6+7+)$/.test(raw) && /^[67]+$/.test(raw)) {
+    return "67";
+  }
+
   if(/\b(previous question|last question|what did i ask before)\b/.test(t)){
     if(lastUserQuestion){
       return 'Your previous question was: "' + lastUserQuestion + '"';
@@ -232,28 +254,27 @@ function aiReply(text){
     }
   }
 
-  if(/\btime\b/.test(t))
+  if(/\b(time)\b/.test(t))
     return '🕒 Current Time (IST): '+new Date().toLocaleTimeString('en-IN',{timeZone:'Asia/Kolkata'});
-  if(/\bdate\b/.test(t))
+  if(/\b(date)\b/.test(t))
     return '📅 Today\'s Date (IST): '+new Date().toLocaleDateString('en-IN',{timeZone:'Asia/Kolkata'});
 
-if(/[0-9]/.test(t) || /(square root|cube root|sqrt|cbrt|√|∛)/.test(t)){
-  try{
-    let expr = t
-      .replace(/square root/g,'Math.sqrt')
-      .replace(/cube root/g,'Math.cbrt')
-      .replace(/sqrt/g,'Math.sqrt')
-      .replace(/cbrt/g,'Math.cbrt')
-      .replace(/√/g,'Math.sqrt')
-      .replace(/∛/g,'Math.cbrt')
-      .replace(/\^/g,'**');
+  if(/[0-9]/.test(t) || /(square root|cube root|sqrt|cbrt|√|∛)/.test(t)){
+    try{
+      let expr = t
+        .replace(/square root/g,'Math.sqrt')
+        .replace(/cube root/g,'Math.cbrt')
+        .replace(/sqrt/g,'Math.sqrt')
+        .replace(/cbrt/g,'Math.cbrt')
+        .replace(/√/g,'Math.sqrt')
+        .replace(/∛/g,'Math.cbrt')
+        .replace(/\^/g,'**');
 
-    if(/[0-9]/.test(expr) && /[+\-*^]|Math\.sqrt|Math\.cbrt/.test(expr)){
-      return '🧮 Result: ' + Function('return ' + expr)();
-    }
-  }catch{}
-}
-  if(/^(67|6677|666777|66667777|69)$/.test(t)) return t;
+      if(/[0-9]/.test(expr) && /[+\-*^]|Math\.sqrt|Math\.cbrt/.test(expr)){
+        return '🧮 Result: ' + Function('return ' + expr)();
+      }
+    }catch{}
+  }
 
   const qa=[
     [['who are you','what are you'],'I am Echo AI, an offline smart assistant.'],
@@ -266,11 +287,15 @@ if(/[0-9]/.test(t) || /(square root|cube root|sqrt|cbrt|√|∛)/.test(t)){
     [['decimal'],'A decimal represents numbers using a decimal point.'],
     [['triangle'],'Triangles have three sides and an angle sum of 180°.'],
     [['newton'],'Newton’s Third Law: every action has an equal and opposite reaction.'],
-    [['snowflake'],'Snowflake is a cloud-based data warehouse.'],
-    [['ai ml dl'],'AI is the field, ML learns from data, DL uses neural networks.'],
-    [['study'],'Effective studying involves revision, understanding, and breaks.'],
-    [['concentration'],'Improve concentration by reducing distractions and taking breaks.'],
-    [['negative thoughts'],'Practice mindfulness and talk to someone you trust.']
+    [['capital of india'],'The capital of India is New Delhi.'],
+    [['largest planet'],'The largest planet in our solar system is Jupiter.'],
+    [['smallest planet'],'The smallest planet in our solar system is Mercury.'],
+    [['who invented telephone'],'Alexander Graham Bell invented the telephone.'],
+    [['who invented light bulb'],'Thomas Edison invented the practical electric light bulb.'],
+    [['national animal of india'],'The national animal of India is the Bengal Tiger.'],
+    [['national bird of india'],'The national bird of India is the Peacock.'],
+    [['speed of light'],'The speed of light is approximately 3 × 10^8 meters per second.'],
+    [['are you better than chatgpt'],'That depends 😎. ChatGPT lives on the internet... I live in your device. I work offline, don’t need WiFi, and never get tired. So let’s just say… I’m built different. 🤖🔥']
   ];
 
   if(/\b(hi|hello|hey)\b/.test(t)) {
@@ -285,7 +310,7 @@ if(/[0-9]/.test(t) || /(square root|cube root|sqrt|cbrt|√|∛)/.test(t)){
   if(/\b(thanks|thank you|thx|ty)\b/.test(t)) return 'You’re very welcome 😊';
   if(/\b(bye|cya|see you)\b/.test(t)) return 'Goodbye 👋';
 
-  return 'I am sorry, I cannot help you with this question because I am an offline AI and can answer only from a predefined set of questions. I humbly apologize for my inconvenience.';
+  return 'I am sorry, I cannot help you with this question because I am an offline AI and can answer only from a predefined set of questions.';
 }
 
 function send(){
@@ -298,10 +323,7 @@ function send(){
 
   setTimeout(()=>{
     addMsg(reply,'ai');
-
-    /* MEMORY STORE */
     lastUserQuestion = text;
-
   },400);
 }
 
